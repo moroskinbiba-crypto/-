@@ -1,0 +1,78 @@
+name: TOTK Explorer Build
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build TOTK Explorer v3
+    runs-on: ubuntu-latest
+
+    container:
+      image: devkitpro/devkita64:latest
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check project
+        run: |
+          set -euxo pipefail
+          test -f Makefile
+          test -f tools/setup_deps.sh
+          test -f data/points.csv
+          test -f include/explorer.hpp
+          test -f source/main.cpp
+          test -f source/memory.cpp
+          test -f source/map.cpp
+          test -f source/ui.cpp
+
+      - name: Fetch dependencies
+        run: |
+          set -euxo pipefail
+          bash tools/setup_deps.sh
+
+      - name: Verify dependencies
+        run: |
+          set -euxo pipefail
+          test -f libs/libdmntcht.a
+          test -f libs/libtesla/include/tesla.hpp
+
+      - name: Build
+        run: |
+          set -euxo pipefail
+          make clean
+          make -j2
+          test -s TOTK-Explorer-v3.ovl
+
+      - name: Prepare SD package
+        run: |
+          set -euxo pipefail
+
+          mkdir -p artifact/sd/switch/.overlays
+          mkdir -p artifact/sd/switch/totk_explorer
+
+          cp TOTK-Explorer-v3.ovl \
+            artifact/sd/switch/.overlays/
+
+          cp data/points.csv \
+            artifact/sd/switch/totk_explorer/
+
+          test -f artifact/sd/switch/.overlays/TOTK-Explorer-v3.ovl
+          test -f artifact/sd/switch/totk_explorer/points.csv
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TOTK-Explorer-v3
+          path: artifact/
+          include-hidden-files: true
+          if-no-files-found: error
