@@ -2,15 +2,14 @@ name: TOTK Explorer Build
 
 on:
   push:
-    branches:
-      - main
-      - master
+    branches: [ main, master ]
   workflow_dispatch:
 
 jobs:
   build:
-    name: Build TOTK Explorer v3
+    name: Build Switch OVL
     runs-on: ubuntu-latest
+    timeout-minutes: 25
 
     container:
       image: devkitpro/devkita64:latest
@@ -20,54 +19,45 @@ jobs:
         shell: bash
 
     steps:
-      - name: Checkout
+      - name: Checkout project
         uses: actions/checkout@v4
 
-      - name: Check project
-        run: |
-          set -euxo pipefail
-          test -f Makefile
-          test -f tools/setup_deps.sh
-          test -f data/points.csv
-          test -f include/explorer.hpp
-          test -f source/main.cpp
-          test -f source/memory.cpp
-          test -f source/map.cpp
-          test -f source/ui.cpp
-
       - name: Fetch dependencies
-        run: |
-          set -euxo pipefail
-          bash tools/setup_deps.sh
+        run: bash tools/setup_deps.sh
 
-      - name: Verify dependencies
+      - name: Verify repository
         run: |
           set -euxo pipefail
-          test -f libs/libdmntcht.a
-          test -f libs/libtesla/include/tesla.hpp
+          python3 tools/verify_repo.py
+          test -f data/points.csv
+          test -s libs/libdmntcht.a
+          test -s libs/libtesla/include/tesla.hpp
+          test -s include/switch/dmntcht.h
 
       - name: Build
         run: |
           set -euxo pipefail
+          make verify-layout
           make clean
           make -j2
           test -s TOTK-Explorer-v3.ovl
+          ls -lh TOTK-Explorer-v3.ovl
 
       - name: Prepare SD package
         run: |
           set -euxo pipefail
-
+          test -s TOTK-Explorer-v3.ovl
+          test -f data/points.csv
+          rm -rf artifact
           mkdir -p artifact/sd/switch/.overlays
           mkdir -p artifact/sd/switch/totk_explorer
-
-          cp TOTK-Explorer-v3.ovl \
-            artifact/sd/switch/.overlays/
-
-          cp data/points.csv \
-            artifact/sd/switch/totk_explorer/
-
-          test -f artifact/sd/switch/.overlays/TOTK-Explorer-v3.ovl
+          cp TOTK-Explorer-v3.ovl artifact/sd/switch/.overlays/
+          cp data/points.csv artifact/sd/switch/totk_explorer/
+          cp INSTALL_SD.txt artifact/
+          cp README_RU.md artifact/
+          test -s artifact/sd/switch/.overlays/TOTK-Explorer-v3.ovl
           test -f artifact/sd/switch/totk_explorer/points.csv
+          find artifact -type f -print
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
