@@ -1,53 +1,50 @@
-# TOTK Explorer v3.1.1 — reviewed build
+# TOTK Explorer v3.2 — Assisted Coordinate Discovery
 
-Tesla overlay for The Legend of Zelda: Tears of the Kingdom.
+Target: Tears of the Kingdom 1.4.3 / TID `0100F2C0115B6000` / BID `277178B7DBA1B6D4`.
 
-Target build:
-- Version: 1.4.3
-- Title ID: 0100F2C0115B6000
-- Build ID: 277178B7DBA1B6D4
+## Important change
 
-## Changes in this reviewed build
+This version does **not** pretend that a blind float scan can reliably identify Link's position.
+It uses a one-time assisted calibration:
 
-- GitHub Actions validates `data/points.csv` before packaging.
-- Artifact upload uses `include-hidden-files: true`, so `switch/.overlays/*.ovl` is retained.
-- Workflow supports both `main` and `master` and exposes `workflow_dispatch`.
-- Repository paths use real dot-prefixed GitHub names; no leading-underscore aliases are used.
-- libtesla is fetched from tag `v1.3.3`.
-- `libdmntcht.a` is verified before compile.
-- Candidate storage is capped at 4096 entries and uses reservoir sampling instead of stopping at the first 20,000 matches.
-- The duplicate moving-candidate vector was removed.
-- Scan UI, coordinates, map and diagnostics update their `ListItem` values during `update()`.
-- Build and package steps verify that the final `.ovl` exists and is non-empty.
+1. Open TOTK and note the current X Y Z shown by the in-game mini-map.
+2. Create `sd:/switch/totk_explorer/calibration.txt` with one line:
 
-## What is intentionally not claimed
-
-The coordinate scanner is heuristic. It looks for float triples in the TOTK heap and filters them using player movement and vertical movement. It is not a guaranteed game-structure parser. A successful scan must be validated on the target Switch build.
-
-The point database is intentionally empty apart from comments. The map/nearby engine reads verified points from `sd:/switch/totk_explorer/points.csv`.
-
-## Build
-
-Use the GitHub Actions workflow `TOTK Explorer Build`, or a devkitPro/devkitA64 environment with:
-
-```sh
-bash tools/setup_deps.sh
-make clean
-make -j2
+```text
+X Y Z
 ```
 
-The result is `TOTK-Explorer-v3.ovl`.
+Optional tolerance:
 
-## Installation
+```text
+X Y Z 1.0
+```
 
-Copy the `switch` directory from the build artifact to the root of the microSD card:
+3. Open TOTK Explorer → Auto Discovery → Start.
+4. Let the memory scan finish.
+5. Walk Link and press X.
+6. Jump/change elevation and press X.
+7. The best remaining candidate is saved to `profile.txt`.
+
+After that, Explorer reads the saved profile and exposes live X/Y/Z to Map and Nearby.
+
+## Why this is more reliable
+
+The initial search is constrained to the actual coordinate triplet the game is showing, instead of treating every plausible float triple in the heap as a coordinate candidate. Movement and elevation checks provide two more filters.
+
+## Files
 
 ```text
 sd:/switch/.overlays/TOTK-Explorer-v3.ovl
 sd:/switch/totk_explorer/points.csv
+sd:/switch/totk_explorer/calibration.txt
+sd:/switch/totk_explorer/profile.txt   # created after discovery
 ```
 
+`points.csv` is read-only map data. `profile.txt` stores the discovered heap offset and last coordinates.
 
-## Compatibility note
+## Current limits
 
-libtesla is fetched from its current `master` branch because the old v1.3.x releases use an older libnx HID API. The current libtesla tree is the one intended to build against the current devkitPro/libnx environment.
+- Coordinate discovery is version-specific and must be revalidated if the game Build ID changes.
+- The overlay does not write game memory.
+- Region names and completion flags are separate future data providers.

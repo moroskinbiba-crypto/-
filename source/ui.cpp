@@ -60,6 +60,7 @@ public:
         auto* list = new tsl::elm::List();
 
         list->addItem(new tsl::elm::CategoryHeader("Automatic coordinate detection"));
+        list->addItem(new tsl::elm::ListItem("Calibration", ex::state().calibration.valid ? "loaded" : "missing"));
         stageItem = new tsl::elm::ListItem("Stage");
         statusItem = new tsl::elm::ListItem("Status");
         progressItem = new tsl::elm::ListItem("Scan progress");
@@ -84,6 +85,7 @@ public:
         list->addItem(start);
 
         list->addItem(new tsl::elm::CategoryHeader("Calibration"));
+        list->addItem(new tsl::elm::ListItem("calibration.txt", "Enter current HUD X Y Z"));
         list->addItem(new tsl::elm::ListItem("X", "After walking, press X"));
         list->addItem(new tsl::elm::ListItem("X again", "After jumping, press X"));
         list->addItem(new tsl::elm::ListItem("Y", "Reset scan"));

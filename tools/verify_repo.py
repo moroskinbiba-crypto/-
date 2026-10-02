@@ -47,19 +47,17 @@ if makefile.count('$(MAKE) --no-print-directory -C $@ -f $(TOPDIR)/Makefile all'
     errors.append('unexpected recursive make structure')
 
 source = (root / 'source/memory.cpp').read_text(encoding='utf-8')
-if 'MAX_CANDIDATES = 4096' not in source:
-    errors.append('candidate cap was not reduced to 4096')
+if 'MAX_CANDIDATES = 1024' not in source:
+    errors.append('candidate cap is not 1024')
 if 'std::vector<Candidate> moving' in source:
     errors.append('duplicate moving candidate vector still present')
-if 'addReservoirCandidate' not in source:
-    errors.append('reservoir sampling helper missing')
 
 ui = (root / 'source/ui.cpp').read_text(encoding='utf-8')
 if 'setValue(' not in ui:
     errors.append('UI does not update live ListItem values')
 
 version = (root / 'include/explorer.hpp').read_text(encoding='utf-8')
-if 'VERSION = "3.1.0"' not in version:
+if 'VERSION = "3.2.0"' not in version:
     errors.append('version mismatch in explorer.hpp')
 
 if errors:
@@ -74,4 +72,4 @@ print(' - workflow packaging: OK')
 print(' - Makefile recursion: OK')
 print(' - candidate memory cap: OK')
 print(' - live UI update hooks: OK')
-print(' - version: 3.1.0')
+print(' - version: 3.2.0')
