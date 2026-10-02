@@ -1,4 +1,4 @@
-# TOTK Explorer v3.1.0 — reviewed build
+# TOTK Explorer v3.1.1 — reviewed build
 
 Tesla overlay for The Legend of Zelda: Tears of the Kingdom.
 
@@ -47,11 +47,7 @@ sd:/switch/.overlays/TOTK-Explorer-v3.ovl
 sd:/switch/totk_explorer/points.csv
 ```
 
-## Важно для GitHub Actions
 
-В репозитории должен быть только один workflow для сборки:
-`.github/workflows/build.yml`
+## Compatibility note
 
-Удалите старые workflow (`main.yml`, `build.yml` с шагом `Get libdmntcht`, и т.п.).
-Этот workflow НЕ клонирует Atmosphere и НЕ ищет `dmntcht.hpp` в `libraries/libstratosphere`.
-Зависимость `libdmntcht.a` + `dmntcht.h` берётся через `tools/setup_deps.sh` из репозитория, для которого ожидается структура `lib/libdmntcht.a` и `include/switch/dmntcht.h`.
+libtesla is fetched from its current `master` branch because the old v1.3.x releases use an older libnx HID API. The current libtesla tree is the one intended to build against the current devkitPro/libnx environment.

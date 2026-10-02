@@ -19,3 +19,6 @@ Not verified in this environment:
 - Native devkitA64 compilation/runtime on a physical Switch.
 - Correctness of the TOTK coordinate candidate chosen by heuristic memory scan.
 - Completeness/correctness of the external TOTK point database.
+
+
+Compatibility fix: libtesla is fetched from current master, not v1.3.3. The supplied build log showed v1.3.3/libnx HID API mismatch.
